@@ -1,11 +1,17 @@
-from datetime import date
 from typing import Optional
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 
 from app.core.dependencies import get_current_user, get_pdf_service
 from app.models.user import User
-from app.schemas.pdf import PDFListItem, PDFUploadResponse, SearchResponse, SearchResultItem
+from app.schemas.pdf import (
+    FileUploadResponse,
+    PDFCreateRequest,
+    PDFListItem,
+    PDFUploadResponse,
+    SearchResponse,
+    SearchResultItem,
+)
 from app.services.pdf_service import PDFService
 
 router = APIRouter(prefix="/pdf", tags=["PDF Documents"])
@@ -13,18 +19,14 @@ router = APIRouter(prefix="/pdf", tags=["PDF Documents"])
 ALLOWED_CONTENT_TYPES = {"application/pdf"}
 
 
-@router.post("/upload", response_model=PDFUploadResponse, status_code=status.HTTP_201_CREATED)
-async def upload_pdf(
+@router.post(
+    "/upload-file",
+    response_model=FileUploadResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Step 1 — Upload the PDF file, get back a file_ref",
+)
+async def upload_file(
     file: UploadFile = File(...),
-    act_name: str = Form(...),
-    gazette_reference: str = Form(...),
-    issuing_authority: str = Form(...),
-    enactment_date: date = Form(...),
-    version_no: Optional[str] = Form("1.0"),
-    department_id: Optional[int] = Form(None),
-    document_type_id: Optional[int] = Form(None),
-    tag_ids: Optional[str] = Form(None, description="Comma-separated tag IDs e.g. 1,3,5"),
-    description: Optional[str] = Form(None),
     current_user: User = Depends(get_current_user),
     service: PDFService = Depends(get_pdf_service),
 ):
@@ -33,29 +35,36 @@ async def upload_pdf(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Only PDF files are allowed",
         )
-    parsed_tag_ids: Optional[list[int]] = None
-    if tag_ids:
-        try:
-            parsed_tag_ids = [int(t.strip()) for t in tag_ids.split(",") if t.strip()]
-        except ValueError:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="tag_ids must be comma-separated integers",
-            )
+    return await service.store_file(file)
 
-    return await service.upload(
-        file=file,
-        user_id=current_user.id,
-        act_name=act_name,
-        gazette_reference=gazette_reference,
-        issuing_authority=issuing_authority,
-        enactment_date=enactment_date,
-        version_no=version_no,
-        department_id=department_id,
-        document_type_id=document_type_id,
-        tag_ids=parsed_tag_ids,
-        description=description,
-    )
+
+@router.post(
+    "/upload",
+    response_model=PDFUploadResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Step 2 — Submit metadata with the file_ref from Step 1",
+)
+def create_document(
+    body: PDFCreateRequest,
+    current_user: User = Depends(get_current_user),
+    service: PDFService = Depends(get_pdf_service),
+):
+    try:
+        return service.create_from_ref(
+            file_ref=body.file_ref,
+            user_id=current_user.id,
+            act_name=body.act_name,
+            gazette_reference=body.gazette_reference,
+            issuing_authority=body.issuing_authority,
+            enactment_date=body.enactment_date,
+            version_no=body.version_no,
+            department_id=body.department_id,
+            document_type_id=body.document_type_id,
+            tag_ids=body.tag_ids,
+            description=body.description,
+        )
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.get("/search", response_model=SearchResponse)
