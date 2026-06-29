@@ -5,8 +5,8 @@ from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, 
 from app.core.dependencies import get_current_user, get_pdf_service, require_roles
 from app.models.user import User
 from app.schemas.pdf import (
-    ActNameItem,
-    ActNameSearchResponse,
+    DocumentNameItem,
+    DocumentNameSearchResponse,
     FileUploadResponse,
     PDFCreateRequest,
     PDFListResponse,
@@ -117,24 +117,34 @@ def review_document(
     return doc
 
 
-@router.get("/search-acts", response_model=ActNameSearchResponse, summary="Autocomplete — search Act names by keyword")
-def search_act_names(
-    text: str = Query(..., min_length=1, description="Keyword to match against Act document names"),
+VALID_DOCUMENT_TYPES = {"Act", "Amendment", "Notification", "Circular", "Policy", "Rules & Regulations", "Order/Gazette"}
+
+
+@router.get("/search-documents", response_model=DocumentNameSearchResponse, summary="Autocomplete — search document names by type and keyword")
+def search_documents_by_type(
+    document_type: str = Query(..., description="Document type: Act | Amendment | Notification | Circular | Policy | Rules & Regulations | Order/Gazette"),
+    q: str = Query(..., min_length=1, description="Keyword to match against document names"),
     limit: int = Query(20, ge=1, le=100),
     current_user: User = Depends(get_current_user),
     service: PDFService = Depends(get_pdf_service),
 ):
-    rows = service.search_act_names(text, limit)
+    if document_type not in VALID_DOCUMENT_TYPES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"document_type must be one of: {', '.join(sorted(VALID_DOCUMENT_TYPES))}",
+        )
+    rows = service.search_documents_by_type(document_type, q, limit)
     results = [
-        ActNameItem(
+        DocumentNameItem(
             id=r["id"],
             document_name=r["document_name"],
             reference_number=r.get("reference_number"),
             status=r["status"],
+            document_type_name=r.get("document_type_name"),
         )
         for r in rows
     ]
-    return ActNameSearchResponse(query=text, total=len(results), results=results)
+    return DocumentNameSearchResponse(query=q, document_type=document_type, total=len(results), results=results)
 
 
 @router.get("/search", response_model=SearchResponse)

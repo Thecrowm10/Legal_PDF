@@ -118,10 +118,10 @@ class PDFRepository(IPDFRepository):
         total = rows[0]["total_count"] if rows else 0
         return total, [self._map_row(row) for row in rows]
 
-    def search_act_names(self, q: str, limit: int = 20) -> list[dict]:
+    def search_documents_by_type(self, document_type: str, q: str, limit: int = 20) -> list[dict]:
         result = self._db.execute(
-            text("EXEC sp_search_act_names @q = :q, @limit = :limit"),
-            {"q": q, "limit": limit},
+            text("EXEC sp_search_documents_by_type @document_type = :document_type, @q = :q, @limit = :limit"),
+            {"document_type": document_type, "q": q, "limit": limit},
         )
         return [dict(row) for row in result.mappings().fetchall()]
 

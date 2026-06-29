@@ -55,5 +55,5 @@ class IPDFRepository(ABC):
         ...
 
     @abstractmethod
-    def search_act_names(self, q: str, limit: int = 20) -> list[dict]:
+    def search_documents_by_type(self, document_type: str, q: str, limit: int = 20) -> list[dict]:
         ...
