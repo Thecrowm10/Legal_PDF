@@ -19,6 +19,14 @@ class Settings(BaseSettings):
 
     UPLOAD_DIR: str = "uploads"
 
+    # Ollama — local LLM for PDF summarisation
+    OLLAMA_HOST:  str = "http://localhost:11434"
+    OLLAMA_MODEL: str = "llama3.2"   # any model pulled via `ollama pull <model>`
+
+    # Tesseract OCR
+    TESSERACT_CMD:  str = ""       # blank = use system PATH; Windows: full path to tesseract.exe
+    TESSERACT_LANG: str = "eng+hin"    # English + Hindi
+
     # Email (SMTP) — set in .env for production
     SMTP_HOST:     str = ""
     SMTP_PORT:     int = 587

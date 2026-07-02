@@ -31,6 +31,7 @@ class IPDFRepository(ABC):
         department_id: Optional[int] = None,
         document_type_id: Optional[int] = None,
         description: Optional[str] = None,
+        summary: Optional[str] = None,  # auto-generated internally, not from request body
     ) -> PDFDocument:
         ...
 

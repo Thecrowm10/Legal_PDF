@@ -13,6 +13,7 @@ from app.interfaces.tag_repository import ITagRepository
 from app.models.pdf_document import PDFDocument
 from app.schemas.pdf import FileUploadResponse, RelationshipInput
 from app.services.pdf_extractor import extract_pages
+from app.services.pdf_summarizer import summarize_document
 from app.utils.text_utils import prepare_fts_query, build_snippet
 
 
@@ -37,10 +38,22 @@ class PDFService:
         content = await file.read()
         with open(file_path, "wb") as f:
             f.write(content)
+
+        # Extract text and generate summary immediately so Step 1 response is useful
+        summary: str | None = None
+        try:
+            pages = [(num, txt) for num, txt in extract_pages(file_path) if txt.strip()]
+            if pages:
+                combined_text = "\n".join(txt for _, txt in pages)
+                summary = summarize_document(combined_text)
+        except Exception:
+            pass
+
         return FileUploadResponse(
             file_ref=unique_name,
             original_filename=file.filename,
             file_size=len(content),
+            summary=summary,
         )
 
     def create_from_ref(
@@ -73,6 +86,17 @@ class PDFService:
         file_size = os.path.getsize(file_path)
         original_filename = "_".join(file_ref.split("_")[1:]) if "_" in file_ref else file_ref
 
+        pages: list[tuple[int, str]] = []
+        try:
+            pages = [(num, txt) for num, txt in extract_pages(file_path) if txt.strip()]
+        except Exception:
+            pass
+
+        summary: str | None = None
+        if pages:
+            combined_text = "\n".join(txt for _, txt in pages)
+            summary = summarize_document(combined_text)
+
         doc = self._pdf_repo.create(
             filename=file_ref,
             original_filename=original_filename,
@@ -95,7 +119,11 @@ class PDFService:
             department_id=department_id,
             document_type_id=document_type_id,
             description=description,
+            summary=summary,
         )
+
+        if pages:
+            self._page_repo.save_pages(doc.id, pages)
 
         if tag_ids:
             self._tag_repo.save_document_tags(doc.id, tag_ids)
@@ -108,13 +136,6 @@ class PDFService:
                 type("R", (), {"pdf_id": r.pdf_id, "document_name": None, "type": r.type})()
                 for r in relationships
             ]
-
-        try:
-            pages = [(num, txt) for num, txt in extract_pages(file_path) if txt.strip()]
-            if pages:
-                self._page_repo.save_pages(doc.id, pages)
-        except Exception:
-            pass
 
         return doc
 

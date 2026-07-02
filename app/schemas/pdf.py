@@ -11,6 +11,7 @@ class FileUploadResponse(BaseModel):
     file_ref: str
     original_filename: str
     file_size: int
+    summary: Optional[str] = None
 
 
 # ── Approval ─────────────────────────────────────────────────
@@ -109,6 +110,7 @@ class PDFUploadResponse(BaseModel):
     relationships: list[RelationshipRef] = []
     latest_approval: Optional[ApprovalInfo] = None
     description: Optional[str] = None
+    summary: Optional[str] = None
     uploaded_by: int
     created_at: datetime
 
@@ -144,6 +146,7 @@ class PDFListItem(BaseModel):
     relationships: list[RelationshipRef] = []
     latest_approval: Optional[ApprovalInfo] = None
     description: Optional[str] = None
+    summary: Optional[str] = None
     uploaded_by: int
     created_at: datetime
 

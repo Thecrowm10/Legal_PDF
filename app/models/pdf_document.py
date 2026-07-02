@@ -21,6 +21,7 @@ class PDFDocument(Base):
     department_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("departments.id"), nullable=True)
     document_type_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("document_types.id"), nullable=True)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    summary: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Shared across multiple types
     reference_number: Mapped[str | None] = mapped_column(String(100), nullable=True)

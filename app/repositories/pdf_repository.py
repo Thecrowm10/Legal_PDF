@@ -39,6 +39,7 @@ class PDFRepository(IPDFRepository):
         department_id: Optional[int] = None,
         document_type_id: Optional[int] = None,
         description: Optional[str] = None,
+        summary: Optional[str] = None,
     ) -> PDFDocument:
         result = self._db.execute(
             text(
@@ -53,7 +54,7 @@ class PDFRepository(IPDFRepository):
                 "@implementing_agency = :implementing_agency, @next_review_date = :next_review_date, "
                 "@rule_making_authority = :rule_making_authority, @version_no = :version_no, "
                 "@department_id = :department_id, @document_type_id = :document_type_id, "
-                "@description = :description"
+                "@description = :description, @summary = :summary"
             ),
             {
                 "filename": filename,
@@ -77,6 +78,7 @@ class PDFRepository(IPDFRepository):
                 "department_id": department_id,
                 "document_type_id": document_type_id,
                 "description": description,
+                "summary": summary,
             },
         )
         row = result.mappings().fetchone()
@@ -209,6 +211,7 @@ class PDFRepository(IPDFRepository):
             department_id=d.get("department_id"),
             document_type_id=d.get("document_type_id"),
             description=d.get("description"),
+            summary=d.get("summary"),
             uploaded_by=d["uploaded_by"],
             created_at=d["created_at"],
         )
