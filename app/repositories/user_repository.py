@@ -172,7 +172,7 @@ class UserRepository(IUserRepository):
         departments = []
         for did, dname in zip(ids, names):
             try:
-                departments.append(Department(id=int(did), name=dname, description=department_description or None))
+                departments.append(Department(id=int(did), name=dname, description=department_description or None, is_active=True))
             except (ValueError, TypeError):
                 pass
         return departments, departments[0] if departments else None

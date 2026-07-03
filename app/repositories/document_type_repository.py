@@ -38,12 +38,23 @@ class DocumentTypeRepository(IDocumentTypeRepository):
             self._db.rollback()
             raise ValueError("A document type with this name already exists")
 
+    def toggle(self, type_id: int) -> Optional[DocumentType]:
+        result = self._db.execute(
+            text("EXEC sp_toggle_document_type_status @type_id = :type_id"),
+            {"type_id": type_id},
+        )
+        row = result.mappings().fetchone()
+        self._db.commit()
+        return self._map_row(row) if row else None
+
     @staticmethod
     def _map_row(row) -> DocumentType:
         d = dict(row)
-        return DocumentType(
+        dt = DocumentType(
             id=d["id"],
             name=d["name"],
             description=d.get("description"),
             created_at=d["created_at"],
         )
+        dt.is_active = bool(d.get("is_active", True))
+        return dt

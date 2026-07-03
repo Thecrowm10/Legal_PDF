@@ -25,6 +25,7 @@ class DepartmentOut(BaseModel):
     id: int
     name: str
     description: Optional[str] = None
+    is_active: bool = True
 
     model_config = {"from_attributes": True}
 

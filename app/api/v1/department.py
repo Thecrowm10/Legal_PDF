@@ -40,3 +40,15 @@ def get_department(
     if not dept:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Department not found")
     return dept
+
+
+@router.patch("/{department_id}/toggle", response_model=DepartmentOut)
+def toggle_department(
+    department_id: int,
+    current_user: User = Depends(get_current_user),
+    service: DepartmentService = Depends(get_department_service),
+):
+    dept = service.toggle(department_id)
+    if not dept:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Department not found")
+    return dept

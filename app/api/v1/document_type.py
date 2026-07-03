@@ -35,3 +35,15 @@ def create_document_type(
         return repo.create(body.name, body.description)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+
+
+@router.patch("/{type_id}/toggle", response_model=DocumentTypeOut)
+def toggle_document_type(
+    type_id: int,
+    _=Depends(require_roles("super Admin", "admin")),
+    repo: IDocumentTypeRepository = Depends(get_document_type_repository),
+):
+    doc_type = repo.toggle(type_id)
+    if not doc_type:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document type not found")
+    return doc_type

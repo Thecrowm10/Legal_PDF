@@ -7,6 +7,7 @@ class DocumentTypeOut(BaseModel):
     id: int
     name: str
     description: Optional[str] = None
+    is_active: bool = True
     created_at: datetime
 
     model_config = {"from_attributes": True}

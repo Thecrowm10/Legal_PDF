@@ -41,11 +41,23 @@ class DepartmentRepository(IDepartmentRepository):
         )
         return [self._map_row(row) for row in result.mappings().fetchall()]
 
+    def toggle(self, department_id: int) -> Optional[Department]:
+        result = self._db.execute(
+            text("EXEC sp_toggle_department_status @department_id = :department_id"),
+            {"department_id": department_id},
+        )
+        row = result.mappings().fetchone()
+        self._db.commit()
+        return self._map_row(row) if row else None
+
     @staticmethod
     def _map_row(row) -> Department:
-        return Department(
-            id=row["id"],
-            name=row["name"],
-            description=row["description"],
-            created_at=row["created_at"],
+        d = dict(row)
+        dept = Department(
+            id=d["id"],
+            name=d["name"],
+            description=d.get("description"),
+            created_at=d["created_at"],
         )
+        dept.is_active = bool(d.get("is_active", True))
+        return dept

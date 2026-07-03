@@ -17,3 +17,7 @@ class IDocumentTypeRepository(ABC):
     @abstractmethod
     def create(self, name: str, description: Optional[str] = None) -> DocumentType:
         ...
+
+    @abstractmethod
+    def toggle(self, type_id: int) -> Optional[DocumentType]:
+        ...

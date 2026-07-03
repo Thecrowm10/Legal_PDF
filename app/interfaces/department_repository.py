@@ -17,3 +17,7 @@ class IDepartmentRepository(ABC):
     @abstractmethod
     def list_all(self, skip: int = 0, limit: int = 100) -> list[Department]:
         ...
+
+    @abstractmethod
+    def toggle(self, department_id: int) -> Optional[Department]:
+        ...
