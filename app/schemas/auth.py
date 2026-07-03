@@ -39,7 +39,7 @@ class UserOut(BaseModel):
     must_change_password: bool = True
     role: Optional[RoleOut] = None
     department: Optional[DepartmentOut] = None
-    managed_department_ids: Optional[str] = None
+    departments: list[DepartmentOut] = []
     created_at: datetime
     last_login: Optional[datetime] = None
 

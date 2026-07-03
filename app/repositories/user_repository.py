@@ -163,6 +163,21 @@ class UserRepository(IUserRepository):
         self._db.commit()
 
     @staticmethod
+    def _build_departments(dept_id_str, department_name_raw, department_description):
+        """Parse dept_id_str ('1' or '1,2') and pipe-separated names into Department list."""
+        if not dept_id_str or not department_name_raw:
+            return [], None
+        ids = [i.strip() for i in dept_id_str.split(',')]
+        names = department_name_raw.split('|')
+        departments = []
+        for did, dname in zip(ids, names):
+            try:
+                departments.append(Department(id=int(did), name=dname, description=department_description or None))
+            except (ValueError, TypeError):
+                pass
+        return departments, departments[0] if departments else None
+
+    @staticmethod
     def _map_row(row) -> User:
         row_dict = dict(row)
         user = User(
@@ -188,17 +203,13 @@ class UserRepository(IUserRepository):
                 name=row_dict["role_name"],
                 description=row_dict["role_description"],
             )
-        dept_id_str = row_dict.get("department_id")
-        try:
-            dept_id_int = int(dept_id_str) if dept_id_str else None
-        except (ValueError, TypeError):
-            dept_id_int = None
-        if dept_id_int and row_dict.get("department_name"):
-            user.department = Department(
-                id=dept_id_int,
-                name=row_dict["department_name"],
-                description=row_dict["department_description"],
-            )
+        depts, primary = UserRepository._build_departments(
+            row_dict.get("department_id"),
+            row_dict.get("department_name"),
+            row_dict.get("department_description"),
+        )
+        user.department = primary
+        user.departments = depts
         return user
 
     @staticmethod
@@ -227,15 +238,11 @@ class UserRepository(IUserRepository):
                 name=row_dict["role_name"],
                 description=row_dict["role_description"],
             )
-        dept_id_str = row_dict.get("department_id")
-        try:
-            dept_id_int = int(dept_id_str) if dept_id_str else None
-        except (ValueError, TypeError):
-            dept_id_int = None
-        if dept_id_int and row_dict.get("department_name"):
-            user.department = Department(
-                id=dept_id_int,
-                name=row_dict["department_name"],
-                description=row_dict["department_description"],
-            )
+        depts, primary = UserRepository._build_departments(
+            row_dict.get("department_id"),
+            row_dict.get("department_name"),
+            row_dict.get("department_description"),
+        )
+        user.department = primary
+        user.departments = depts
         return user
