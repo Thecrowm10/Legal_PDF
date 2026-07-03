@@ -220,4 +220,7 @@ class PDFRepository(IPDFRepository):
         doc.tags = PDFRepository._parse_tags(d.get("tags"))
         doc.relationships = PDFRepository._parse_relationships(d.get("relationships"))
         doc.latest_approval = PDFRepository._parse_approval(d.get("latest_approval"))
+        doc.uploader_username = d.get("uploader_username")
+        doc.uploader_first_name = d.get("uploader_first_name")
+        doc.uploader_last_name = d.get("uploader_last_name")
         return doc

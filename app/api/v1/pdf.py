@@ -164,7 +164,7 @@ def review_document(
 )
 def list_documents_for_approver(
     skip: int = Query(0, ge=0),
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(20, ge=1, le=1000),
     status: Optional[str] = Query(None, description="Filter by status: pending | approved | rejected"),
     current_user: User = Depends(_approver_roles),
     service: PDFService = Depends(get_pdf_service),
@@ -244,7 +244,7 @@ def list_my_documents(
 @router.get("/all", response_model=PDFListResponse)
 def list_all_documents(
     skip: int = Query(0, ge=0),
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(20, ge=1, le=1000),
     status: Optional[str] = Query(None, description="Filter by status: pending | approved | rejected"),
     current_user: User = Depends(get_current_user),
     service: PDFService = Depends(get_pdf_service),

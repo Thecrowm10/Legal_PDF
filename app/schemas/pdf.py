@@ -149,6 +149,9 @@ class PDFListItem(BaseModel):
     summary: Optional[str] = None
     uploaded_by: int
     created_at: datetime
+    uploader_username: Optional[str] = None
+    uploader_first_name: Optional[str] = None
+    uploader_last_name: Optional[str] = None
 
     model_config = {"from_attributes": True}
 
