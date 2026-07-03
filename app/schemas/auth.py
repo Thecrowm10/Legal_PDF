@@ -85,3 +85,12 @@ class UserUpdate(BaseModel):
 class DepartmentCreate(BaseModel):
     name: str
     description: Optional[str] = None
+
+
+class AdminOtpRequest(BaseModel):
+    mobile_number: str
+
+
+class AdminOtpVerifyRequest(BaseModel):
+    mobile_number: str
+    otp: str

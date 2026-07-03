@@ -3,6 +3,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
+from app.interfaces.admin_otp_repository import IAdminOtpRepository
 from app.interfaces.department_repository import IDepartmentRepository
 from app.interfaces.document_type_repository import IDocumentTypeRepository
 from app.interfaces.login_log_repository import ILoginLogRepository
@@ -14,6 +15,7 @@ from app.interfaces.role_repository import IRoleRepository
 from app.interfaces.tag_repository import ITagRepository
 from app.interfaces.user_repository import IUserRepository
 from app.models.user import User
+from app.repositories.admin_otp_repository import AdminOtpRepository
 from app.repositories.department_repository import DepartmentRepository
 from app.repositories.document_type_repository import DocumentTypeRepository
 from app.repositories.login_log_repository import LoginLogRepository
@@ -24,7 +26,9 @@ from app.repositories.reset_otp_repository import ResetOtpRepository
 from app.repositories.role_repository import RoleRepository
 from app.repositories.tag_repository import TagRepository
 from app.repositories.user_repository import UserRepository
+from app.services.admin_auth_service import AdminAuthService
 from app.services.auth_service import AuthService
+from app.services.sms_service import SmsService
 from app.services.department_service import DepartmentService
 from app.services.email_service import EmailService
 from app.services.pdf_service import PDFService
@@ -37,6 +41,17 @@ bearer_scheme = HTTPBearer()
 
 def get_user_repository(db: Session = Depends(get_db)) -> IUserRepository:
     return UserRepository(db)
+
+
+def get_admin_otp_repository(db: Session = Depends(get_db)) -> IAdminOtpRepository:
+    return AdminOtpRepository(db)
+
+
+def get_admin_auth_service(
+    user_repo: IUserRepository = Depends(get_user_repository),
+    otp_repo: IAdminOtpRepository = Depends(get_admin_otp_repository),
+) -> AdminAuthService:
+    return AdminAuthService(user_repo, otp_repo, SmsService())
 
 
 def get_pdf_repository(db: Session = Depends(get_db)) -> IPDFRepository:
