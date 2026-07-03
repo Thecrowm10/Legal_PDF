@@ -28,7 +28,7 @@ def get_tag(
 @router.post("/", response_model=TagOut, status_code=status.HTTP_201_CREATED)
 def create_tag(
     body: TagCreate,
-    _=Depends(require_roles("super_admin", "admin")),
+    _=Depends(require_roles("super Admin", "admin")),
     repo: ITagRepository = Depends(get_tag_repository),
 ):
     try:

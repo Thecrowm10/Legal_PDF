@@ -28,7 +28,7 @@ def get_document_type(
 @router.post("/", response_model=DocumentTypeOut, status_code=status.HTTP_201_CREATED)
 def create_document_type(
     body: DocumentTypeCreate,
-    _=Depends(require_roles("super_admin", "admin")),
+    _=Depends(require_roles("super Admin", "admin")),
     repo: IDocumentTypeRepository = Depends(get_document_type_repository),
 ):
     try:

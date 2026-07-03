@@ -157,7 +157,7 @@ def require_roles(*roles: str):
     Dependency factory for role-based access control.
 
     Usage:
-        current_user: User = Depends(require_roles("super_admin", "admin"))
+        current_user: User = Depends(require_roles("super Admin", "admin"))
     """
     def _check(current_user: User = Depends(get_current_user)) -> User:
         user_role = current_user.role.name if current_user.role else None

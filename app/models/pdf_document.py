@@ -1,6 +1,6 @@
 from datetime import datetime, date, timezone
 from sqlalchemy import String, DateTime, ForeignKey, Integer, BigInteger, Text, Date
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
 
@@ -49,4 +49,3 @@ class PDFDocument(Base):
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
 
-    uploaded_by_user: Mapped["User"] = relationship("User", back_populates="pdf_documents")

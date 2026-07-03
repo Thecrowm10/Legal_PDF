@@ -20,11 +20,12 @@ class AuthService:
         first_name: Optional[str] = None,
         last_name: Optional[str] = None,
         role_id: Optional[int] = None,
-        department_id: Optional[int] = None,
+        department_id: Optional[str] = None,
+        mobile_number: Optional[str] = None,
     ) -> User:
         return self._user_repo.create(
             username, email, hash_password(password),
-            first_name, last_name, role_id, department_id,
+            first_name, last_name, role_id, department_id, mobile_number,
         )
 
     def login(self, username: str, password: str, ip_address: Optional[str] = None) -> Optional[str]:

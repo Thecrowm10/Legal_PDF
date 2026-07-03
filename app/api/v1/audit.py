@@ -10,7 +10,7 @@ from app.services.audit_service import AuditService
 
 router = APIRouter(prefix="/audit-logs", tags=["Audit Logs"])
 
-_admin_only = require_roles("super_admin", "admin")
+_admin_only = require_roles("super Admin", "admin")
 
 
 @router.get("/", response_model=AuditLogListResponse)

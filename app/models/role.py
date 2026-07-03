@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from sqlalchemy import String, DateTime, Text
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
 
@@ -14,5 +14,3 @@ class Role(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
-
-    users: Mapped[list["User"]] = relationship("User", back_populates="role")

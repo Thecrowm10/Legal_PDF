@@ -10,6 +10,7 @@ from app.models.role import Role
 from app.models.user import User
 
 
+
 class UserRepository(IUserRepository):
 
     def __init__(self, db: Session):
@@ -63,7 +64,7 @@ class UserRepository(IUserRepository):
         first_name: Optional[str] = None,
         last_name: Optional[str] = None,
         role_id: Optional[int] = None,
-        department_id: Optional[int] = None,
+        department_id: Optional[str] = None,
         mobile_number: Optional[str] = None,
     ) -> User:
         try:
@@ -143,14 +144,14 @@ class UserRepository(IUserRepository):
         skip: int = 0,
         limit: int = 100,
         exclude_user_id: Optional[int] = None,
-        department_id: Optional[int] = None,
+        department_ids: Optional[str] = None,
     ) -> list[User]:
         result = self._db.execute(
             text(
                 "EXEC sp_list_users @skip = :skip, @limit = :limit, "
-                "@exclude_user_id = :exclude_user_id, @department_id = :department_id"
+                "@exclude_user_id = :exclude_user_id, @department_ids = :department_ids"
             ),
-            {"skip": skip, "limit": limit, "exclude_user_id": exclude_user_id, "department_id": department_id},
+            {"skip": skip, "limit": limit, "exclude_user_id": exclude_user_id, "department_ids": department_ids},
         )
         return [self._map_row(row) for row in result.mappings().fetchall()]
 
@@ -187,9 +188,14 @@ class UserRepository(IUserRepository):
                 name=row_dict["role_name"],
                 description=row_dict["role_description"],
             )
-        if row_dict.get("department_id"):
+        dept_id_str = row_dict.get("department_id")
+        try:
+            dept_id_int = int(dept_id_str) if dept_id_str else None
+        except (ValueError, TypeError):
+            dept_id_int = None
+        if dept_id_int and row_dict.get("department_name"):
             user.department = Department(
-                id=row_dict["department_id"],
+                id=dept_id_int,
                 name=row_dict["department_name"],
                 description=row_dict["department_description"],
             )
@@ -221,9 +227,14 @@ class UserRepository(IUserRepository):
                 name=row_dict["role_name"],
                 description=row_dict["role_description"],
             )
-        if row_dict.get("department_id"):
+        dept_id_str = row_dict.get("department_id")
+        try:
+            dept_id_int = int(dept_id_str) if dept_id_str else None
+        except (ValueError, TypeError):
+            dept_id_int = None
+        if dept_id_int and row_dict.get("department_name"):
             user.department = Department(
-                id=row_dict["department_id"],
+                id=dept_id_int,
                 name=row_dict["department_name"],
                 description=row_dict["department_description"],
             )

@@ -30,7 +30,7 @@ ALLOWED_CONTENT_TYPES = {
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 }
 
-_approver_roles = require_roles("approver", "admin", "super_admin")
+_approver_roles = require_roles("approver", "admin", "super Admin")
 
 
 @router.post(

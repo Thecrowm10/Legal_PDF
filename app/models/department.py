@@ -15,4 +15,3 @@ class Department(Base):
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
 
-    users: Mapped[list["User"]] = relationship("User", back_populates="department")

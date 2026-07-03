@@ -31,7 +31,8 @@ class IUserRepository(ABC):
         first_name: Optional[str] = None,
         last_name: Optional[str] = None,
         role_id: Optional[int] = None,
-        department_id: Optional[int] = None,
+        department_id: Optional[str] = None,
+        mobile_number: Optional[str] = None,
     ) -> User:
         ...
 
@@ -54,7 +55,7 @@ class IUserRepository(ABC):
         skip: int = 0,
         limit: int = 100,
         exclude_user_id: Optional[int] = None,
-        department_id: Optional[int] = None,
+        department_ids: Optional[str] = None,
     ) -> list[User]:
         ...
 

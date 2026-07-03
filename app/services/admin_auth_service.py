@@ -9,7 +9,7 @@ from app.interfaces.user_repository import IUserRepository
 from app.services.sms_service import SmsService
 
 _OTP_TTL_MINUTES = 10
-_ADMIN_ROLES = {"super_admin", "admin"}
+_ADMIN_ROLES = {"super Admin", "admin"}
 
 
 class AdminAuthService:
