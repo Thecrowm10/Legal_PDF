@@ -1,12 +1,13 @@
 import os
 from typing import Optional
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
 from fastapi.responses import FileResponse
 
 from app.core.config import settings
-from app.core.dependencies import get_current_user, get_pdf_service, require_roles
+from app.core.dependencies import get_audit_service, get_current_user, get_pdf_service, require_roles
 from app.models.user import User
+from app.schemas.audit import AuditLogOut
 from app.schemas.pdf import (
     DocumentNameItem,
     DocumentNameSearchResponse,
@@ -18,7 +19,9 @@ from app.schemas.pdf import (
     SearchResponse,
     SearchResultItem,
 )
+from app.services.audit_service import AuditService
 from app.services.pdf_service import PDFService
+from app.utils.request_utils import get_client_ip
 
 router = APIRouter(prefix="/pdf", tags=["PDF Documents"])
 
@@ -37,9 +40,11 @@ _approver_roles = require_roles("approver", "admin", "super_admin")
     summary="Step 1 — Upload the PDF binary, receive a file_ref",
 )
 async def upload_file(
+    request: Request,
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
     service: PDFService = Depends(get_pdf_service),
+    audit: AuditService = Depends(get_audit_service),
 ):
     if file.content_type not in ALLOWED_CONTENT_TYPES:
         raise HTTPException(
@@ -47,9 +52,16 @@ async def upload_file(
             detail="Only PDF and Word (.docx) files are allowed",
         )
     try:
-        return await service.store_file(file)
+        result = await service.store_file(file)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc))
+    audit.log(
+        "pdf_uploaded", "pdf",
+        actor_user_id=current_user.id,
+        details={"original_filename": result.original_filename, "file_size": result.file_size, "file_ref": result.file_ref},
+        ip_address=get_client_ip(request),
+    )
+    return result
 
 
 @router.post(
@@ -60,11 +72,13 @@ async def upload_file(
 )
 def create_document(
     body: PDFCreateRequest,
+    request: Request,
     current_user: User = Depends(get_current_user),
     service: PDFService = Depends(get_pdf_service),
+    audit: AuditService = Depends(get_audit_service),
 ):
     try:
-        return service.create_from_ref(
+        doc = service.create_from_ref(
             file_ref=body.file_ref,
             user_id=current_user.id,
             department_id=current_user.department_id,
@@ -88,6 +102,14 @@ def create_document(
         )
     except FileNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    audit.log(
+        "pdf_created", "pdf",
+        actor_user_id=current_user.id,
+        entity_id=doc.id,
+        details={"document_name": body.document_name, "document_type_id": body.document_type_id, "department_id": current_user.department_id, "file_ref": body.file_ref},
+        ip_address=get_client_ip(request),
+    )
+    return doc
 
 
 @router.get(
@@ -112,8 +134,10 @@ def list_pending_documents(
 )
 def review_document(
     body: PDFReviewRequest,
+    request: Request,
     current_user: User = Depends(_approver_roles),
     service: PDFService = Depends(get_pdf_service),
+    audit: AuditService = Depends(get_audit_service),
 ):
     if body.action not in ("approved", "rejected"):
         raise HTTPException(
@@ -123,6 +147,13 @@ def review_document(
     doc = service.review_document(body.pdf_id, current_user.id, body.action, body.comments)
     if not doc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
+    audit.log(
+        f"pdf_{body.action}", "pdf",
+        actor_user_id=current_user.id,
+        entity_id=body.pdf_id,
+        details={"action": body.action, "comments": body.comments},
+        ip_address=get_client_ip(request),
+    )
     return doc
 
 

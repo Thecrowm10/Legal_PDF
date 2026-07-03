@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 
-from app.core.dependencies import get_current_user, get_user_repository, require_roles
+from app.core.dependencies import get_audit_service, get_current_user, get_user_repository, require_roles
 from app.interfaces.user_repository import IUserRepository
 from app.models.user import User
 from app.schemas.auth import UserOut, UserUpdate
+from app.services.audit_service import AuditService
+from app.utils.request_utils import get_client_ip
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -52,8 +54,10 @@ def get_user(
 @router.patch("/", response_model=UserOut)
 def update_user(
     body: UserUpdate,
+    request: Request,
     current_user: User = Depends(_manage_users),
     repo: IUserRepository = Depends(get_user_repository),
+    audit: AuditService = Depends(get_audit_service),
 ):
     target = repo.get_by_id(body.user_id)
     if not target:
@@ -74,6 +78,21 @@ def update_user(
                 detail="Nodal officers cannot transfer users to another department",
             )
 
+    # Capture what is actually changing before the update
+    changes: dict = {}
+    if body.first_name is not None and body.first_name != target.first_name:
+        changes["first_name"] = {"old": target.first_name, "new": body.first_name}
+    if body.last_name is not None and body.last_name != target.last_name:
+        changes["last_name"] = {"old": target.last_name, "new": body.last_name}
+    if body.email is not None and body.email != target.email:
+        changes["email"] = {"old": target.email, "new": body.email}
+    if body.is_active is not None and body.is_active != target.is_active:
+        changes["is_active"] = {"old": target.is_active, "new": body.is_active}
+    if body.role_id is not None and body.role_id != target.role_id:
+        changes["role_id"] = {"old": target.role_id, "new": body.role_id}
+    if body.department_id is not None and body.department_id != target.department_id:
+        changes["department_id"] = {"old": target.department_id, "new": body.department_id}
+
     try:
         user = repo.update(
             body.user_id,
@@ -88,4 +107,12 @@ def update_user(
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    audit.log(
+        "user_updated", "user",
+        actor_user_id=current_user.id,
+        entity_id=body.user_id,
+        details={"target_username": target.username, "changes": changes},
+        ip_address=get_client_ip(request),
+    )
     return user

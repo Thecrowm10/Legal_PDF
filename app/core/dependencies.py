@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.interfaces.admin_otp_repository import IAdminOtpRepository
+from app.interfaces.audit_log_repository import IAuditLogRepository
 from app.interfaces.department_repository import IDepartmentRepository
 from app.interfaces.document_type_repository import IDocumentTypeRepository
 from app.interfaces.login_log_repository import ILoginLogRepository
@@ -16,6 +17,7 @@ from app.interfaces.tag_repository import ITagRepository
 from app.interfaces.user_repository import IUserRepository
 from app.models.user import User
 from app.repositories.admin_otp_repository import AdminOtpRepository
+from app.repositories.audit_log_repository import AuditLogRepository
 from app.repositories.department_repository import DepartmentRepository
 from app.repositories.document_type_repository import DocumentTypeRepository
 from app.repositories.login_log_repository import LoginLogRepository
@@ -27,6 +29,7 @@ from app.repositories.role_repository import RoleRepository
 from app.repositories.tag_repository import TagRepository
 from app.repositories.user_repository import UserRepository
 from app.services.admin_auth_service import AdminAuthService
+from app.services.audit_service import AuditService
 from app.services.auth_service import AuthService
 from app.services.sms_service import SmsService
 from app.services.department_service import DepartmentService
@@ -41,6 +44,16 @@ bearer_scheme = HTTPBearer()
 
 def get_user_repository(db: Session = Depends(get_db)) -> IUserRepository:
     return UserRepository(db)
+
+
+def get_audit_log_repository(db: Session = Depends(get_db)) -> IAuditLogRepository:
+    return AuditLogRepository(db)
+
+
+def get_audit_service(
+    repo: IAuditLogRepository = Depends(get_audit_log_repository),
+) -> AuditService:
+    return AuditService(repo)
 
 
 def get_admin_otp_repository(db: Session = Depends(get_db)) -> IAdminOtpRepository:
