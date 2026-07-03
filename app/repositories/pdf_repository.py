@@ -160,6 +160,7 @@ class PDFRepository(IPDFRepository):
             return ApprovalInfo(
                 action=d["action"],
                 comments=d.get("comments"),
+                annotations_json=d.get("annotations_json"),
                 acted_at=d["acted_at"],
                 approver_username=d["approver_username"],
                 approver_first_name=d.get("approver_first_name"),

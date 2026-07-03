@@ -19,6 +19,7 @@ class FileUploadResponse(BaseModel):
 class ApprovalInfo(BaseModel):
     action: str
     comments: Optional[str] = None
+    annotations_json: Optional[str] = None
     acted_at: datetime
     approver_username: str
     approver_first_name: Optional[str] = None
@@ -29,6 +30,7 @@ class PDFReviewRequest(BaseModel):
     pdf_id: int
     action: str                  # 'approved' | 'rejected'
     comments: Optional[str] = None
+    annotations_json: Optional[str] = None
 
 
 # ── Relationships ────────────────────────────────────────────

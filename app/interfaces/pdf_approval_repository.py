@@ -13,5 +13,6 @@ class IPDFApprovalRepository(ABC):
         approver_id: int,
         action: str,
         comments: Optional[str] = None,
+        annotations_json: Optional[str] = None,
     ) -> Optional[PDFDocument]:
         ...

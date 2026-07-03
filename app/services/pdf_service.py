@@ -169,10 +169,11 @@ class PDFService:
         approver_id: int,
         action: str,
         comments: Optional[str] = None,
+        annotations_json: Optional[str] = None,
     ) -> Optional[PDFDocument]:
         if action not in ("approved", "rejected"):
             raise ValueError("action must be 'approved' or 'rejected'")
-        return self._approval_repo.review(pdf_id, approver_id, action, comments)
+        return self._approval_repo.review(pdf_id, approver_id, action, comments, annotations_json)
 
     def get_by_id(self, document_id: int) -> Optional[PDFDocument]:
         return self._pdf_repo.get_by_id(document_id)
