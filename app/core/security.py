@@ -51,15 +51,16 @@ def build_user_token(user) -> str:
     ts = user.password_changed_at
     if ts and ts.tzinfo is None:
         ts = ts.replace(tzinfo=timezone.utc)
+    all_depts = getattr(user, "departments", None) or []
     return create_access_token({
         "sub":                  str(user.id),
         "username":             user.username,
         "email":                user.email,
         "is_active":            user.is_active,
         "must_change_password": must_change,
-        "password_expired":     expired,        # lets frontend show the right message
+        "password_expired":     expired,
         "role_id":              user.role_id,
         "role":                 user.role.name if user.role else None,
         "department_id":        user.department_id,
-        "department":           user.department.name if user.department else None,
+        "departments":          [{"id": d.id, "name": d.name} for d in all_depts],
     })
