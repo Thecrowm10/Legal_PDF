@@ -22,7 +22,10 @@ from app.services.pdf_service import PDFService
 
 router = APIRouter(prefix="/pdf", tags=["PDF Documents"])
 
-ALLOWED_CONTENT_TYPES = {"application/pdf"}
+ALLOWED_CONTENT_TYPES = {
+    "application/pdf",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+}
 
 _approver_roles = require_roles("approver", "admin", "super_admin")
 
@@ -41,9 +44,12 @@ async def upload_file(
     if file.content_type not in ALLOWED_CONTENT_TYPES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Only PDF files are allowed",
+            detail="Only PDF and Word (.docx) files are allowed",
         )
-    return await service.store_file(file)
+    try:
+        return await service.store_file(file)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc))
 
 
 @router.post(

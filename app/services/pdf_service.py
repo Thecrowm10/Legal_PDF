@@ -39,13 +39,27 @@ class PDFService:
         with open(file_path, "wb") as f:
             f.write(content)
 
-        # Extract text and generate summary immediately so Step 1 response is useful
-        summary: str | None = None
+        # Extract text — reject the file early if nothing is readable
+        pages: list[tuple[int, str]] = []
         try:
             pages = [(num, txt) for num, txt in extract_pages(file_path) if txt.strip()]
-            if pages:
-                combined_text = "\n".join(txt for _, txt in pages)
-                summary = summarize_document(combined_text)
+        except Exception:
+            pass
+
+        if not pages:
+            try:
+                os.remove(file_path)
+            except OSError:
+                pass
+            raise ValueError(
+                "File is not OCR Enabled. No readable text could be extracted. "
+                "Please upload another file."
+            )
+
+        combined_text = "\n".join(txt for _, txt in pages)
+        summary: str | None = None
+        try:
+            summary = summarize_document(combined_text)
         except Exception:
             pass
 
