@@ -25,7 +25,7 @@ def list_audit_logs(
     current_user: User = Depends(_admin_only),
     service: AuditService = Depends(get_audit_service),
 ):
-    total, rows = service.list(skip, limit, user_id, action, entity_type, from_date, to_date)
+    total, rows = service.list(skip, limit, user_id, action, entity_type, from_date, to_date, exclude_user_id=current_user.id)
     logs = [
         AuditLogOut(
             id=r["id"],

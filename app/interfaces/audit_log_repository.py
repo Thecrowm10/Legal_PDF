@@ -28,5 +28,6 @@ class IAuditLogRepository(ABC):
         entity_type: Optional[str] = None,
         from_date: Optional[datetime] = None,
         to_date: Optional[datetime] = None,
+        exclude_user_id: Optional[int] = None,
     ) -> tuple[int, list[dict]]:
         ...

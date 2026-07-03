@@ -52,6 +52,7 @@ class AuditLogRepository(IAuditLogRepository):
         entity_type: Optional[str] = None,
         from_date: Optional[datetime] = None,
         to_date: Optional[datetime] = None,
+        exclude_user_id: Optional[int] = None,
     ) -> tuple[int, list[dict]]:
         result = self._db.execute(
             text(
@@ -59,7 +60,7 @@ class AuditLogRepository(IAuditLogRepository):
                 "@skip = :skip, @limit = :limit, "
                 "@user_id = :user_id, @action = :action, "
                 "@entity_type = :entity_type, @from_date = :from_date, "
-                "@to_date = :to_date"
+                "@to_date = :to_date, @exclude_user_id = :exclude_user_id"
             ),
             {
                 "skip": skip,
@@ -69,6 +70,7 @@ class AuditLogRepository(IAuditLogRepository):
                 "entity_type": entity_type,
                 "from_date": from_date,
                 "to_date": to_date,
+                "exclude_user_id": exclude_user_id,
             },
         )
         rows = result.mappings().fetchall()
