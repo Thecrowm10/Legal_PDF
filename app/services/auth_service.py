@@ -37,7 +37,7 @@ class AuthService:
         return build_user_token(user)
 
     def change_password(self, user_id: int, current_password: str, new_password: str) -> Optional[str]:
-        user = self._user_repo.get_by_id(user_id)
+        user = self._user_repo.get_by_id_for_auth(user_id)
         if not user or not verify_password(current_password, user.hashed_password):
             return None
         self._user_repo.change_password(user_id, hash_password(new_password))

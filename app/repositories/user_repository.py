@@ -23,13 +23,21 @@ class UserRepository(IUserRepository):
         row = result.mappings().fetchone()
         return self._map_row(row) if row else None
 
+    def get_by_id_for_auth(self, user_id: int) -> Optional[User]:
+        result = self._db.execute(
+            text("EXEC sp_get_user_by_id @user_id = :user_id"),
+            {"user_id": user_id},
+        )
+        row = result.mappings().fetchone()
+        return self._map_row_auth(row) if row else None
+
     def get_by_username(self, username: str) -> Optional[User]:
         result = self._db.execute(
             text("EXEC sp_get_user_by_username @username = :username"),
             {"username": username},
         )
         row = result.mappings().fetchone()
-        return self._map_row(row) if row else None
+        return self._map_row_auth(row) if row else None
 
     def get_by_mobile(self, mobile_number: str) -> Optional[User]:
         result = self._db.execute(
@@ -37,7 +45,7 @@ class UserRepository(IUserRepository):
             {"mobile_number": mobile_number},
         )
         row = result.mappings().fetchone()
-        return self._map_row(row) if row else None
+        return self._map_row_auth(row) if row else None
 
     def get_by_email(self, email: str) -> Optional[User]:
         result = self._db.execute(
@@ -45,7 +53,7 @@ class UserRepository(IUserRepository):
             {"email": email},
         )
         row = result.mappings().fetchone()
-        return self._map_row(row) if row else None
+        return self._map_row_auth(row) if row else None
 
     def create(
         self,
@@ -130,13 +138,19 @@ class UserRepository(IUserRepository):
                 raise ValueError("Email is already registered")
             raise ValueError("Update failed due to a conflict")
 
-    def list_all(self, skip: int = 0, limit: int = 100, exclude_user_id: Optional[int] = None) -> list[User]:
+    def list_all(
+        self,
+        skip: int = 0,
+        limit: int = 100,
+        exclude_user_id: Optional[int] = None,
+        department_id: Optional[int] = None,
+    ) -> list[User]:
         result = self._db.execute(
             text(
                 "EXEC sp_list_users @skip = :skip, @limit = :limit, "
-                "@exclude_user_id = :exclude_user_id"
+                "@exclude_user_id = :exclude_user_id, @department_id = :department_id"
             ),
-            {"skip": skip, "limit": limit, "exclude_user_id": exclude_user_id},
+            {"skip": skip, "limit": limit, "exclude_user_id": exclude_user_id, "department_id": department_id},
         )
         return [self._map_row(row) for row in result.mappings().fetchall()]
 
@@ -149,6 +163,40 @@ class UserRepository(IUserRepository):
 
     @staticmethod
     def _map_row(row) -> User:
+        row_dict = dict(row)
+        user = User(
+            id=row_dict["id"],
+            username=row_dict["username"],
+            email=row_dict["email"],
+            hashed_password="",
+            is_active=bool(row_dict["is_active"]),
+            must_change_password=bool(row_dict.get("must_change_password", True)),
+            mobile_number=row_dict.get("mobile_number"),
+            password_changed_at=row_dict.get("password_changed_at"),
+            first_name=row_dict.get("first_name"),
+            last_name=row_dict.get("last_name"),
+            role_id=row_dict.get("role_id"),
+            department_id=row_dict.get("department_id"),
+            created_at=row_dict["created_at"],
+            updated_at=row_dict["updated_at"],
+        )
+        user.last_login = row_dict.get("last_login")
+        if row_dict.get("role_id"):
+            user.role = Role(
+                id=row_dict["role_id"],
+                name=row_dict["role_name"],
+                description=row_dict["role_description"],
+            )
+        if row_dict.get("department_id"):
+            user.department = Department(
+                id=row_dict["department_id"],
+                name=row_dict["department_name"],
+                description=row_dict["department_description"],
+            )
+        return user
+
+    @staticmethod
+    def _map_row_auth(row) -> User:
         row_dict = dict(row)
         user = User(
             id=row_dict["id"],
