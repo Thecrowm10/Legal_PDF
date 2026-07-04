@@ -193,13 +193,16 @@ class PDFService:
     def link_document_to_department(self, pdf_id: int, department_id: int, user_id: int) -> dict:
         return self._pdf_repo.link_to_department(pdf_id, department_id, user_id)
 
-    def get_pending_links_for_department(self, department_id: int) -> list[dict]:
-        return self._pdf_repo.get_pending_links_for_department(department_id)
+    def get_links_for_department(self, department_id: int, status: str | None = "pending") -> list[dict]:
+        return self._pdf_repo.get_links_for_department(department_id, status)
 
-    def review_department_link(self, link_id: int, action: str, reviewed_by: int) -> None:
+    def review_department_link(self, link_id: int, action: str, reviewed_by: int, comments: str | None = None, annotations_json: str | None = None) -> None:
         if action not in ("approved", "rejected"):
             raise ValueError("action must be 'approved' or 'rejected'")
-        self._pdf_repo.review_department_link(link_id, action, reviewed_by)
+        self._pdf_repo.review_department_link(link_id, action, reviewed_by, comments, annotations_json)
 
-    def get_linked_documents_for_department(self, department_id: int) -> list[dict]:
-        return self._pdf_repo.get_linked_documents_for_department(department_id)
+    def get_linked_documents_for_department(self, department_id: int, status: str | None = None) -> list[dict]:
+        return self._pdf_repo.get_linked_documents_for_department(department_id, status)
+
+    def get_all_department_links(self, status: str | None = None, department_id: int | None = None) -> list[dict]:
+        return self._pdf_repo.get_all_department_links(status, department_id)

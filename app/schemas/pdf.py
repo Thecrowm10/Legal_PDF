@@ -184,7 +184,9 @@ class LinkDocumentRequest(BaseModel):
 
 class LinkReviewRequest(BaseModel):
     link_id: int
-    action: str   # 'approved' | 'rejected'
+    action: str                         # 'approved' | 'rejected'
+    comments: Optional[str] = None
+    annotations_json: Optional[str] = None
 
 
 class DepartmentLinkItem(BaseModel):
@@ -192,6 +194,8 @@ class DepartmentLinkItem(BaseModel):
     pdf_id: int
     link_status: str
     requested_at: datetime
+    reviewed_at: Optional[datetime] = None
+    review_comments: Optional[str] = None
     document_name: Optional[str] = None
     version_no: Optional[str] = None
     document_status: str
@@ -200,6 +204,30 @@ class DepartmentLinkItem(BaseModel):
     requested_by_username: Optional[str] = None
     requested_by_first_name: Optional[str] = None
     requested_by_last_name: Optional[str] = None
+    reviewed_by_username: Optional[str] = None
+    reviewed_by_first_name: Optional[str] = None
+    reviewed_by_last_name: Optional[str] = None
+
+
+class AllDepartmentLinkItem(BaseModel):
+    link_id: int
+    pdf_id: int
+    link_status: str
+    requested_at: datetime
+    reviewed_at: Optional[datetime] = None
+    review_comments: Optional[str] = None
+    document_name: Optional[str] = None
+    version_no: Optional[str] = None
+    document_status: str
+    document_type_name: Optional[str] = None
+    original_department_name: Optional[str] = None
+    linked_department_name: Optional[str] = None
+    requested_by_username: Optional[str] = None
+    requested_by_first_name: Optional[str] = None
+    requested_by_last_name: Optional[str] = None
+    reviewed_by_username: Optional[str] = None
+    reviewed_by_first_name: Optional[str] = None
+    reviewed_by_last_name: Optional[str] = None
 
 
 class LinkedDocumentItem(BaseModel):
@@ -225,6 +253,12 @@ class LinkedDocumentItem(BaseModel):
     created_at: datetime
     link_id: int
     link_status: str
+    review_comments: Optional[str] = None
+    reviewed_at: Optional[datetime] = None
+    link_annotations_json: Optional[str] = None
+    link_reviewed_by_username: Optional[str] = None
+    link_reviewed_by_first_name: Optional[str] = None
+    link_reviewed_by_last_name: Optional[str] = None
 
     model_config = {"from_attributes": True}
 

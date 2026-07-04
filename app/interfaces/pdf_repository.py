@@ -68,13 +68,17 @@ class IPDFRepository(ABC):
         ...
 
     @abstractmethod
-    def get_pending_links_for_department(self, department_id: int) -> list[dict]:
+    def get_links_for_department(self, department_id: int, status: str | None = "pending") -> list[dict]:
         ...
 
     @abstractmethod
-    def review_department_link(self, link_id: int, action: str, reviewed_by: int) -> None:
+    def review_department_link(self, link_id: int, action: str, reviewed_by: int, comments: str | None = None, annotations_json: str | None = None) -> None:
         ...
 
     @abstractmethod
-    def get_linked_documents_for_department(self, department_id: int) -> list[dict]:
+    def get_linked_documents_for_department(self, department_id: int, status: str | None = None) -> list[dict]:
+        ...
+
+    @abstractmethod
+    def get_all_department_links(self, status: str | None = None, department_id: int | None = None) -> list[dict]:
         ...

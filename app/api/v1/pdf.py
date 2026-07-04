@@ -9,6 +9,7 @@ from app.core.dependencies import get_audit_service, get_current_user, get_pdf_s
 from app.models.user import User
 from app.schemas.audit import AuditLogOut
 from app.schemas.pdf import (
+    AllDepartmentLinkItem,
     DepartmentLinkItem,
     DocumentNameItem,
     DocumentNameSearchResponse,
@@ -313,16 +314,17 @@ def link_document_to_department(
 @router.get(
     "/linked-documents",
     response_model=list[LinkedDocumentItem],
-    summary="Get documents linked (and approved) to the caller's department",
+    summary="Documents linked to caller's department (all statuses by default)",
 )
 def get_linked_documents(
+    link_status: Optional[str] = Query(None, description="Filter by link status: pending | approved | rejected"),
     current_user: User = Depends(get_current_user),
     service: PDFService = Depends(get_pdf_service),
 ):
     if not current_user.department_id:
         return []
     dept_id = int(current_user.department_id.split(',')[0])
-    rows = service.get_linked_documents_for_department(dept_id)
+    rows = service.get_linked_documents_for_department(dept_id, link_status)
     return [
         LinkedDocumentItem(
             id=r["id"],
@@ -345,6 +347,12 @@ def get_linked_documents(
             created_at=r["created_at"],
             link_id=r["link_id"],
             link_status=r["link_status"],
+            review_comments=r.get("review_comments"),
+            reviewed_at=r.get("reviewed_at"),
+            link_annotations_json=r.get("link_annotations_json"),
+            link_reviewed_by_username=r.get("link_reviewed_by_username"),
+            link_reviewed_by_first_name=r.get("link_reviewed_by_first_name"),
+            link_reviewed_by_last_name=r.get("link_reviewed_by_last_name"),
         )
         for r in rows
     ]
@@ -353,22 +361,26 @@ def get_linked_documents(
 @router.get(
     "/department-link-requests",
     response_model=list[DepartmentLinkItem],
-    summary="Approver — pending link requests for their department",
+    summary="Approver — link requests for their department (pending by default)",
 )
 def get_department_link_requests(
+    link_status: Optional[str] = Query("pending", description="pending | approved | rejected | null for all"),
     current_user: User = Depends(_approver_roles),
     service: PDFService = Depends(get_pdf_service),
 ):
     if not current_user.department_id:
         return []
     dept_id = int(current_user.department_id.split(',')[0])
-    rows = service.get_pending_links_for_department(dept_id)
+    status_param = None if link_status == "all" else link_status
+    rows = service.get_links_for_department(dept_id, status_param)
     return [
         DepartmentLinkItem(
             link_id=r["link_id"],
             pdf_id=r["pdf_id"],
             link_status=r["link_status"],
             requested_at=r["requested_at"],
+            reviewed_at=r.get("reviewed_at"),
+            review_comments=r.get("review_comments"),
             document_name=r.get("document_name"),
             version_no=r.get("version_no"),
             document_status=r["document_status"],
@@ -377,6 +389,49 @@ def get_department_link_requests(
             requested_by_username=r.get("requested_by_username"),
             requested_by_first_name=r.get("requested_by_first_name"),
             requested_by_last_name=r.get("requested_by_last_name"),
+            reviewed_by_username=r.get("reviewed_by_username"),
+            reviewed_by_first_name=r.get("reviewed_by_first_name"),
+            reviewed_by_last_name=r.get("reviewed_by_last_name"),
+        )
+        for r in rows
+    ]
+
+
+_admin_roles = require_roles("admin", "super Admin", "nodal Officer")
+
+
+@router.get(
+    "/all-department-links",
+    response_model=list[AllDepartmentLinkItem],
+    summary="Admin/Nodal — all department link requests across all departments",
+)
+def get_all_department_links(
+    link_status: Optional[str] = Query(None, description="Filter: pending | approved | rejected (null = all)"),
+    department_id: Optional[int] = Query(None, description="Filter by linked-to department id"),
+    current_user: User = Depends(_admin_roles),
+    service: PDFService = Depends(get_pdf_service),
+):
+    rows = service.get_all_department_links(link_status, department_id)
+    return [
+        AllDepartmentLinkItem(
+            link_id=r["link_id"],
+            pdf_id=r["pdf_id"],
+            link_status=r["link_status"],
+            requested_at=r["requested_at"],
+            reviewed_at=r.get("reviewed_at"),
+            review_comments=r.get("review_comments"),
+            document_name=r.get("document_name"),
+            version_no=r.get("version_no"),
+            document_status=r["document_status"],
+            document_type_name=r.get("document_type_name"),
+            original_department_name=r.get("original_department_name"),
+            linked_department_name=r.get("linked_department_name"),
+            requested_by_username=r.get("requested_by_username"),
+            requested_by_first_name=r.get("requested_by_first_name"),
+            requested_by_last_name=r.get("requested_by_last_name"),
+            reviewed_by_username=r.get("reviewed_by_username"),
+            reviewed_by_first_name=r.get("reviewed_by_first_name"),
+            reviewed_by_last_name=r.get("reviewed_by_last_name"),
         )
         for r in rows
     ]
@@ -394,7 +449,7 @@ def review_department_link(
     if body.action not in ("approved", "rejected"):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="action must be 'approved' or 'rejected'")
     try:
-        service.review_department_link(body.link_id, body.action, current_user.id)
+        service.review_department_link(body.link_id, body.action, current_user.id, body.comments, body.annotations_json)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     return {"ok": True, "link_id": body.link_id, "action": body.action}

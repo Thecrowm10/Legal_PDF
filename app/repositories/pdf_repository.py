@@ -143,24 +143,31 @@ class PDFRepository(IPDFRepository):
         self._db.commit()
         return dict(row) if row else {}
 
-    def get_pending_links_for_department(self, department_id: int) -> list[dict]:
+    def get_links_for_department(self, department_id: int, status: str | None = "pending") -> list[dict]:
         result = self._db.execute(
-            text("EXEC sp_get_pending_department_links @department_id = :department_id"),
-            {"department_id": department_id},
+            text("EXEC sp_get_department_links @department_id = :department_id, @status = :status"),
+            {"department_id": department_id, "status": status},
         )
         return [dict(row) for row in result.mappings().fetchall()]
 
-    def review_department_link(self, link_id: int, action: str, reviewed_by: int) -> None:
+    def review_department_link(self, link_id: int, action: str, reviewed_by: int, comments: str | None = None, annotations_json: str | None = None) -> None:
         self._db.execute(
-            text("EXEC sp_review_department_link @link_id = :link_id, @action = :action, @reviewed_by = :reviewed_by"),
-            {"link_id": link_id, "action": action, "reviewed_by": reviewed_by},
+            text("EXEC sp_review_department_link @link_id = :link_id, @action = :action, @reviewed_by = :reviewed_by, @review_comments = :comments, @annotations_json = :annotations_json"),
+            {"link_id": link_id, "action": action, "reviewed_by": reviewed_by, "comments": comments, "annotations_json": annotations_json},
         )
         self._db.commit()
 
-    def get_linked_documents_for_department(self, department_id: int) -> list[dict]:
+    def get_linked_documents_for_department(self, department_id: int, status: str | None = None) -> list[dict]:
         result = self._db.execute(
-            text("EXEC sp_get_linked_documents_for_department @department_id = :department_id"),
-            {"department_id": department_id},
+            text("EXEC sp_get_linked_documents_for_department @department_id = :department_id, @status = :status"),
+            {"department_id": department_id, "status": status},
+        )
+        return [dict(row) for row in result.mappings().fetchall()]
+
+    def get_all_department_links(self, status: str | None = None, department_id: int | None = None) -> list[dict]:
+        result = self._db.execute(
+            text("EXEC sp_get_all_department_links @status = :status, @department_id = :department_id"),
+            {"status": status, "department_id": department_id},
         )
         return [dict(row) for row in result.mappings().fetchall()]
 
