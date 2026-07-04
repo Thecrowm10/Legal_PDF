@@ -46,5 +46,6 @@ class AuditService:
         from_date: Optional[datetime] = None,
         to_date: Optional[datetime] = None,
         exclude_user_id: Optional[int] = None,
+        department_ids: Optional[str] = None,
     ) -> tuple[int, list[dict]]:
-        return self._repo.list(skip, limit, user_id, action, entity_type, from_date, to_date, exclude_user_id)
+        return self._repo.list(skip, limit, user_id, action, entity_type, from_date, to_date, exclude_user_id, department_ids)

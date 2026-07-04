@@ -29,5 +29,6 @@ class IAuditLogRepository(ABC):
         from_date: Optional[datetime] = None,
         to_date: Optional[datetime] = None,
         exclude_user_id: Optional[int] = None,
+        department_ids: Optional[str] = None,
     ) -> tuple[int, list[dict]]:
         ...
