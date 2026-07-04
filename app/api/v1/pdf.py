@@ -381,6 +381,7 @@ def get_department_link_requests(
             requested_at=r["requested_at"],
             reviewed_at=r.get("reviewed_at"),
             review_comments=r.get("review_comments"),
+            annotations_json=r.get("annotations_json"),
             document_name=r.get("document_name"),
             version_no=r.get("version_no"),
             document_status=r["document_status"],

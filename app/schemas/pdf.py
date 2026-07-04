@@ -196,6 +196,7 @@ class DepartmentLinkItem(BaseModel):
     requested_at: datetime
     reviewed_at: Optional[datetime] = None
     review_comments: Optional[str] = None
+    annotations_json: Optional[str] = None
     document_name: Optional[str] = None
     version_no: Optional[str] = None
     document_status: str
