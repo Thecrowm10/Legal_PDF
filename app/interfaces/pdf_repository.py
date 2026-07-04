@@ -58,3 +58,23 @@ class IPDFRepository(ABC):
     @abstractmethod
     def search_documents_by_type(self, document_type: str, q: str, limit: int = 20) -> list[dict]:
         ...
+
+    @abstractmethod
+    def check_duplicate(self, document_name: str, document_type_id: int, caller_dept_id: int) -> list[dict]:
+        ...
+
+    @abstractmethod
+    def link_to_department(self, pdf_id: int, department_id: int, user_id: int) -> dict:
+        ...
+
+    @abstractmethod
+    def get_pending_links_for_department(self, department_id: int) -> list[dict]:
+        ...
+
+    @abstractmethod
+    def review_department_link(self, link_id: int, action: str, reviewed_by: int) -> None:
+        ...
+
+    @abstractmethod
+    def get_linked_documents_for_department(self, department_id: int) -> list[dict]:
+        ...

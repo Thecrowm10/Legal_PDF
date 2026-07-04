@@ -186,3 +186,20 @@ class PDFService:
 
     def list_all_documents(self, skip: int = 0, limit: int = 100, status: Optional[str] = None) -> tuple[int, list[PDFDocument]]:
         return self._pdf_repo.list_all(skip, limit, status)
+
+    def check_duplicate_document(self, document_name: str, document_type_id: int, caller_dept_id: int) -> list[dict]:
+        return self._pdf_repo.check_duplicate(document_name, document_type_id, caller_dept_id)
+
+    def link_document_to_department(self, pdf_id: int, department_id: int, user_id: int) -> dict:
+        return self._pdf_repo.link_to_department(pdf_id, department_id, user_id)
+
+    def get_pending_links_for_department(self, department_id: int) -> list[dict]:
+        return self._pdf_repo.get_pending_links_for_department(department_id)
+
+    def review_department_link(self, link_id: int, action: str, reviewed_by: int) -> None:
+        if action not in ("approved", "rejected"):
+            raise ValueError("action must be 'approved' or 'rejected'")
+        self._pdf_repo.review_department_link(link_id, action, reviewed_by)
+
+    def get_linked_documents_for_department(self, department_id: int) -> list[dict]:
+        return self._pdf_repo.get_linked_documents_for_department(department_id)

@@ -163,6 +163,72 @@ class PDFListResponse(BaseModel):
     documents: list[PDFListItem]
 
 
+# ── Department linking ────────────────────────────────────────
+
+class DuplicateCheckItem(BaseModel):
+    id: int
+    document_name: str
+    version_no: Optional[str] = None
+    status: str
+    created_at: datetime
+    department_id: Optional[int] = None
+    department_name: Optional[str] = None
+    document_type_name: Optional[str] = None
+    uploader_username: Optional[str] = None
+    match_type: str   # 'own_dept' | 'other_dept'
+
+
+class LinkDocumentRequest(BaseModel):
+    pdf_id: int
+
+
+class LinkReviewRequest(BaseModel):
+    link_id: int
+    action: str   # 'approved' | 'rejected'
+
+
+class DepartmentLinkItem(BaseModel):
+    link_id: int
+    pdf_id: int
+    link_status: str
+    requested_at: datetime
+    document_name: Optional[str] = None
+    version_no: Optional[str] = None
+    document_status: str
+    document_type_name: Optional[str] = None
+    original_department_name: Optional[str] = None
+    requested_by_username: Optional[str] = None
+    requested_by_first_name: Optional[str] = None
+    requested_by_last_name: Optional[str] = None
+
+
+class LinkedDocumentItem(BaseModel):
+    """A pdf_documents row returned via sp_get_linked_documents_for_department.
+    Carries the extra link_id / link_status columns on top of the standard fields."""
+    id: int
+    original_filename: str
+    file_path: Optional[str] = None
+    file_size: int
+    status: str
+    document_name: Optional[str] = None
+    version_no: Optional[str] = None
+    reference_number: Optional[str] = None
+    issue_date: Optional[date] = None
+    document_type_id: Optional[int] = None
+    document_type_name: Optional[str] = None
+    department_id: Optional[int] = None
+    department_name: Optional[str] = None
+    uploaded_by: int
+    uploader_username: Optional[str] = None
+    uploader_first_name: Optional[str] = None
+    uploader_last_name: Optional[str] = None
+    created_at: datetime
+    link_id: int
+    link_status: str
+
+    model_config = {"from_attributes": True}
+
+
 class DocumentNameItem(BaseModel):
     id: int
     document_name: str

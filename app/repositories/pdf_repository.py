@@ -127,6 +127,43 @@ class PDFRepository(IPDFRepository):
         )
         return [dict(row) for row in result.mappings().fetchall()]
 
+    def check_duplicate(self, document_name: str, document_type_id: int, caller_dept_id: int) -> list[dict]:
+        result = self._db.execute(
+            text("EXEC sp_check_duplicate_document @document_name = :document_name, @document_type_id = :document_type_id, @caller_dept_id = :caller_dept_id"),
+            {"document_name": document_name, "document_type_id": document_type_id, "caller_dept_id": caller_dept_id},
+        )
+        return [dict(row) for row in result.mappings().fetchall()]
+
+    def link_to_department(self, pdf_id: int, department_id: int, user_id: int) -> dict:
+        result = self._db.execute(
+            text("EXEC sp_link_document_to_department @pdf_id = :pdf_id, @department_id = :department_id, @linked_by = :linked_by"),
+            {"pdf_id": pdf_id, "department_id": department_id, "linked_by": user_id},
+        )
+        row = result.mappings().fetchone()
+        self._db.commit()
+        return dict(row) if row else {}
+
+    def get_pending_links_for_department(self, department_id: int) -> list[dict]:
+        result = self._db.execute(
+            text("EXEC sp_get_pending_department_links @department_id = :department_id"),
+            {"department_id": department_id},
+        )
+        return [dict(row) for row in result.mappings().fetchall()]
+
+    def review_department_link(self, link_id: int, action: str, reviewed_by: int) -> None:
+        self._db.execute(
+            text("EXEC sp_review_department_link @link_id = :link_id, @action = :action, @reviewed_by = :reviewed_by"),
+            {"link_id": link_id, "action": action, "reviewed_by": reviewed_by},
+        )
+        self._db.commit()
+
+    def get_linked_documents_for_department(self, department_id: int) -> list[dict]:
+        result = self._db.execute(
+            text("EXEC sp_get_linked_documents_for_department @department_id = :department_id"),
+            {"department_id": department_id},
+        )
+        return [dict(row) for row in result.mappings().fetchall()]
+
     def save_relationships(self, pdf_id: int, relationships: list[dict]) -> None:
         if not relationships:
             return

@@ -9,9 +9,14 @@ from app.core.dependencies import get_audit_service, get_current_user, get_pdf_s
 from app.models.user import User
 from app.schemas.audit import AuditLogOut
 from app.schemas.pdf import (
+    DepartmentLinkItem,
     DocumentNameItem,
     DocumentNameSearchResponse,
+    DuplicateCheckItem,
     FileUploadResponse,
+    LinkDocumentRequest,
+    LinkReviewRequest,
+    LinkedDocumentItem,
     PDFCreateRequest,
     PDFListResponse,
     PDFReviewRequest,
@@ -256,6 +261,143 @@ def list_all_documents(
         )
     total, documents = service.list_all_documents(skip, limit, status)
     return PDFListResponse(total=total, documents=documents)
+
+
+@router.get(
+    "/check-duplicate",
+    response_model=list[DuplicateCheckItem],
+    summary="Check if a document with the same name and type already exists in another department",
+)
+def check_duplicate_document(
+    document_name: str = Query(..., min_length=1),
+    document_type_id: int = Query(...),
+    current_user: User = Depends(get_current_user),
+    service: PDFService = Depends(get_pdf_service),
+):
+    # Parse first dept id as int; use 0 when user has no department (SP treats all as 'other_dept')
+    dept_id = int(current_user.department_id.split(',')[0]) if current_user.department_id else 0
+    rows = service.check_duplicate_document(document_name, document_type_id, dept_id)
+    return [
+        DuplicateCheckItem(
+            id=r["id"],
+            document_name=r["document_name"],
+            version_no=r.get("version_no"),
+            status=r["status"],
+            created_at=r["created_at"],
+            department_id=r.get("department_id"),
+            department_name=r.get("department_name"),
+            document_type_name=r.get("document_type_name"),
+            uploader_username=r.get("uploader_username"),
+            match_type=r["match_type"],
+        )
+        for r in rows
+    ]
+
+
+@router.post(
+    "/link-department",
+    summary="Request to link an existing document to the caller's department",
+)
+def link_document_to_department(
+    body: LinkDocumentRequest,
+    current_user: User = Depends(get_current_user),
+    service: PDFService = Depends(get_pdf_service),
+):
+    if not current_user.department_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User has no department assigned")
+    dept_id = int(current_user.department_id.split(',')[0])
+    result = service.link_document_to_department(body.pdf_id, dept_id, current_user.id)
+    return result
+
+
+@router.get(
+    "/linked-documents",
+    response_model=list[LinkedDocumentItem],
+    summary="Get documents linked (and approved) to the caller's department",
+)
+def get_linked_documents(
+    current_user: User = Depends(get_current_user),
+    service: PDFService = Depends(get_pdf_service),
+):
+    if not current_user.department_id:
+        return []
+    dept_id = int(current_user.department_id.split(',')[0])
+    rows = service.get_linked_documents_for_department(dept_id)
+    return [
+        LinkedDocumentItem(
+            id=r["id"],
+            original_filename=r["original_filename"],
+            file_path=r.get("file_path"),
+            file_size=r["file_size"],
+            status=r["status"],
+            document_name=r.get("document_name"),
+            version_no=r.get("version_no"),
+            reference_number=r.get("reference_number"),
+            issue_date=r.get("issue_date"),
+            document_type_id=r.get("document_type_id"),
+            document_type_name=r.get("document_type_name"),
+            department_id=r.get("department_id"),
+            department_name=r.get("department_name"),
+            uploaded_by=r["uploaded_by"],
+            uploader_username=r.get("uploader_username"),
+            uploader_first_name=r.get("uploader_first_name"),
+            uploader_last_name=r.get("uploader_last_name"),
+            created_at=r["created_at"],
+            link_id=r["link_id"],
+            link_status=r["link_status"],
+        )
+        for r in rows
+    ]
+
+
+@router.get(
+    "/department-link-requests",
+    response_model=list[DepartmentLinkItem],
+    summary="Approver — pending link requests for their department",
+)
+def get_department_link_requests(
+    current_user: User = Depends(_approver_roles),
+    service: PDFService = Depends(get_pdf_service),
+):
+    if not current_user.department_id:
+        return []
+    dept_id = int(current_user.department_id.split(',')[0])
+    rows = service.get_pending_links_for_department(dept_id)
+    return [
+        DepartmentLinkItem(
+            link_id=r["link_id"],
+            pdf_id=r["pdf_id"],
+            link_status=r["link_status"],
+            requested_at=r["requested_at"],
+            document_name=r.get("document_name"),
+            version_no=r.get("version_no"),
+            document_status=r["document_status"],
+            document_type_name=r.get("document_type_name"),
+            original_department_name=r.get("original_department_name"),
+            requested_by_username=r.get("requested_by_username"),
+            requested_by_first_name=r.get("requested_by_first_name"),
+            requested_by_last_name=r.get("requested_by_last_name"),
+        )
+        for r in rows
+    ]
+
+
+@router.post(
+    "/review-link",
+    summary="Approver — approve or reject a department link request",
+)
+def review_department_link(
+    body: LinkReviewRequest,
+    current_user: User = Depends(_approver_roles),
+    service: PDFService = Depends(get_pdf_service),
+):
+    if body.action not in ("approved", "rejected"):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="action must be 'approved' or 'rejected'")
+    try:
+        service.review_department_link(body.link_id, body.action, current_user.id)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return {"ok": True, "link_id": body.link_id, "action": body.action}
 
 
 @router.get("/{document_id}/file", summary="Stream the original PDF file")
