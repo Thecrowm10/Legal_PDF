@@ -471,8 +471,9 @@ def get_pdf_file(
     )
     if not os.path.exists(fp):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found on server")
-    return FileResponse(
-        fp,
-        media_type="application/pdf",
-        filename=doc.original_filename or "document.pdf",
+    ext = os.path.splitext(fp)[1].lower()
+    media_type = (
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        if ext == ".docx" else "application/pdf"
     )
+    return FileResponse(fp, media_type=media_type, filename=doc.original_filename or "document")
