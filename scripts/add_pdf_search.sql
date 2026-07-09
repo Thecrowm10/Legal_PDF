@@ -45,7 +45,8 @@ GO
 -- ─────────────────────────────────────────────
 -- FULL-TEXT INDEX on pdf_pages.page_text
 -- Must be created AFTER the table and catalog exist.
--- LANGUAGE 1033 = English
+-- LANGUAGE 0 = neutral (language-independent) — indexes Hindi Devanagari and English
+-- without relying on a language-specific word-breaker or stemmer.
 -- ─────────────────────────────────────────────
 
 IF NOT EXISTS (
@@ -54,10 +55,17 @@ IF NOT EXISTS (
     JOIN   sys.tables t ON fi.object_id = t.object_id
     WHERE  t.name = 'pdf_pages' AND SCHEMA_NAME(t.schema_id) = 'dbo'
 )
-CREATE FULLTEXT INDEX ON dbo.pdf_pages(page_text LANGUAGE 1033)
+CREATE FULLTEXT INDEX ON dbo.pdf_pages(page_text LANGUAGE 0)
     KEY INDEX PK_pdf_pages
     ON pdf_catalog
     WITH CHANGE_TRACKING AUTO;
+GO
+
+-- If the FTS index already exists from a previous deployment with LANGUAGE 1033,
+-- run these two statements manually to switch to neutral and rebuild the index:
+--
+--   ALTER FULLTEXT INDEX ON dbo.pdf_pages ALTER COLUMN page_text LANGUAGE 0;
+--   ALTER FULLTEXT INDEX ON dbo.pdf_pages START FULL POPULATION;
 GO
 
 -- ─────────────────────────────────────────────
