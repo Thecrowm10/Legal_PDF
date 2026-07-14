@@ -1,6 +1,11 @@
 USE Legal_PDF;
 GO
 
+-- Returns all documents that reference @act_id via any relationship type.
+-- This powers the "children" / history tab of an Act, including:
+--   parent_act  → Amendments that amend this Act
+--   issued_under → Notifications, Circulars, Orders, etc. issued under this Act
+--   notified_under, implements, amends, related, etc.
 CREATE OR ALTER PROCEDURE dbo.sp_get_documents_under_act
     @act_id INT
 AS
@@ -28,8 +33,7 @@ BEGIN
     JOIN  dbo.document_types dt  ON dt.id  = p.document_type_id
     LEFT  JOIN dbo.departments  dep ON dep.id = p.department_id
     LEFT  JOIN dbo.users        u   ON u.id   = p.uploaded_by
-    WHERE r.target_pdf_id     = @act_id
-      AND r.relationship_type = 'parent_act'
+    WHERE r.target_pdf_id = @act_id
     ORDER BY dt.name, p.issue_date DESC;
 END;
 GO

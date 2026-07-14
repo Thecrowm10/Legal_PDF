@@ -307,6 +307,7 @@ class ActChildDocument(BaseModel):
     department_name: Optional[str] = None
     uploader_username: Optional[str] = None
     created_at: datetime
+    relationship_type: Optional[str] = None
 
 
 class ActChildrenResponse(BaseModel):
