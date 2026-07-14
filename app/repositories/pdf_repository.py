@@ -171,6 +171,13 @@ class PDFRepository(IPDFRepository):
         )
         return [dict(row) for row in result.mappings().fetchall()]
 
+    def get_documents_under_act(self, act_id: int) -> list[dict]:
+        result = self._db.execute(
+            text("EXEC sp_get_documents_under_act @act_id = :act_id"),
+            {"act_id": act_id},
+        )
+        return [dict(row) for row in result.mappings().fetchall()]
+
     def save_relationships(self, pdf_id: int, relationships: list[dict]) -> None:
         if not relationships:
             return

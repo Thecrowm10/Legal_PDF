@@ -9,6 +9,8 @@ from app.core.dependencies import get_audit_service, get_current_user, get_pdf_s
 from app.models.user import User
 from app.schemas.audit import AuditLogOut
 from app.schemas.pdf import (
+    ActChildDocument,
+    ActChildrenResponse,
     AllDepartmentLinkItem,
     DepartmentLinkItem,
     DocumentNameItem,
@@ -455,6 +457,21 @@ def review_department_link(
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     return {"ok": True, "link_id": body.link_id, "action": body.action}
+
+
+@router.get("/{pdf_id}/children", response_model=ActChildrenResponse, summary="Get all documents linked to an Act, grouped by document type (for tab rendering)")
+def get_act_children(
+    pdf_id: int,
+    service: PDFService = Depends(get_pdf_service),
+):
+    rows = service.get_documents_under_act(pdf_id)
+    grouped: dict[str, list[ActChildDocument]] = {}
+    for row in rows:
+        doc_type = row["document_type_name"]
+        grouped.setdefault(doc_type, []).append(ActChildDocument(**{
+            k: row[k] for k in ActChildDocument.model_fields if k in row
+        }))
+    return ActChildrenResponse(act_id=pdf_id, children=grouped)
 
 
 @router.get("/{document_id}/file", summary="Stream the original PDF file")

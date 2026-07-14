@@ -292,3 +292,23 @@ class SearchResponse(BaseModel):
     query: str
     total: int
     results: list[SearchResultItem]
+
+
+# ── Act children (tabs) ───────────────────────────────────────
+
+class ActChildDocument(BaseModel):
+    id: int
+    document_name: str
+    reference_number: Optional[str] = None
+    issue_date: Optional[date] = None
+    status: str
+    version_no: Optional[str] = None
+    document_type_name: str
+    department_name: Optional[str] = None
+    uploader_username: Optional[str] = None
+    created_at: datetime
+
+
+class ActChildrenResponse(BaseModel):
+    act_id: int
+    children: dict[str, list[ActChildDocument]]

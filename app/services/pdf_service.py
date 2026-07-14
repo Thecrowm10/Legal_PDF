@@ -206,3 +206,6 @@ class PDFService:
 
     def get_all_department_links(self, status: str | None = None, department_id: int | None = None) -> list[dict]:
         return self._pdf_repo.get_all_department_links(status, department_id)
+
+    def get_documents_under_act(self, act_id: int) -> list[dict]:
+        return self._pdf_repo.get_documents_under_act(act_id)
