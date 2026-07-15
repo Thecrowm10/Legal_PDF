@@ -136,9 +136,9 @@ class PDFService:
             summary=summary,
         )
 
-        if pages:
-            self._page_repo.save_pages(doc.id, pages)
-
+        # Save tags and relationships immediately after create (while session is clean).
+        # Page saving happens last because it loops over potentially hundreds of pages
+        # and any mid-loop exception must not roll back the relationship records.
         if tag_ids:
             self._tag_repo.save_document_tags(doc.id, tag_ids)
             doc.tags = [t for t in self._tag_repo.list_all() if t.id in tag_ids]
@@ -150,6 +150,12 @@ class PDFService:
                 type("R", (), {"pdf_id": r.pdf_id, "document_name": None, "type": r.type})()
                 for r in relationships
             ]
+
+        if pages:
+            try:
+                self._page_repo.save_pages(doc.id, pages)
+            except Exception:
+                pass  # FTS page indexing is best-effort; document + relationships already committed
 
         return doc
 
