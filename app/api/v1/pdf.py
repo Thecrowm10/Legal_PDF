@@ -107,6 +107,21 @@ def create_document(
             tag_ids=body.tag_ids,
             relationships=body.relationships,
             description=body.description,
+            act_year=body.act_year,
+            long_title=body.long_title,
+            regional_title=body.regional_title,
+            notification_no=body.notification_no,
+            act_code=body.act_code,
+            so_reason=body.so_reason,
+            no_of_rules=body.no_of_rules,
+            no_of_notifications=body.no_of_notifications,
+            no_of_regulations=body.no_of_regulations,
+            no_of_circulars=body.no_of_circulars,
+            no_of_statutes=body.no_of_statutes,
+            no_of_ordinances=body.no_of_ordinances,
+            no_of_orders=body.no_of_orders,
+            keywords=body.keywords,
+            is_repealed=body.is_repealed,
         )
     except FileNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

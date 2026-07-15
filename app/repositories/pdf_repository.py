@@ -40,6 +40,21 @@ class PDFRepository(IPDFRepository):
         document_type_id: Optional[int] = None,
         description: Optional[str] = None,
         summary: Optional[str] = None,
+        act_year: Optional[int] = None,
+        long_title: Optional[str] = None,
+        regional_title: Optional[str] = None,
+        notification_no: Optional[str] = None,
+        act_code: Optional[str] = None,
+        so_reason: Optional[str] = None,
+        no_of_rules: Optional[int] = None,
+        no_of_notifications: Optional[int] = None,
+        no_of_regulations: Optional[int] = None,
+        no_of_circulars: Optional[int] = None,
+        no_of_statutes: Optional[int] = None,
+        no_of_ordinances: Optional[int] = None,
+        no_of_orders: Optional[int] = None,
+        keywords: Optional[str] = None,
+        is_repealed: bool = False,
     ) -> PDFDocument:
         result = self._db.execute(
             text(
@@ -54,7 +69,15 @@ class PDFRepository(IPDFRepository):
                 "@implementing_agency = :implementing_agency, @next_review_date = :next_review_date, "
                 "@rule_making_authority = :rule_making_authority, @version_no = :version_no, "
                 "@department_id = :department_id, @document_type_id = :document_type_id, "
-                "@description = :description, @summary = :summary"
+                "@description = :description, @summary = :summary, "
+                "@act_year = :act_year, @long_title = :long_title, "
+                "@regional_title = :regional_title, @notification_no = :notification_no, "
+                "@act_code = :act_code, @so_reason = :so_reason, "
+                "@no_of_rules = :no_of_rules, @no_of_notifications = :no_of_notifications, "
+                "@no_of_regulations = :no_of_regulations, @no_of_circulars = :no_of_circulars, "
+                "@no_of_statutes = :no_of_statutes, @no_of_ordinances = :no_of_ordinances, "
+                "@no_of_orders = :no_of_orders, @keywords = :keywords, "
+                "@is_repealed = :is_repealed"
             ),
             {
                 "filename": filename,
@@ -79,6 +102,21 @@ class PDFRepository(IPDFRepository):
                 "document_type_id": document_type_id,
                 "description": description,
                 "summary": summary,
+                "act_year": act_year,
+                "long_title": long_title,
+                "regional_title": regional_title,
+                "notification_no": notification_no,
+                "act_code": act_code,
+                "so_reason": so_reason,
+                "no_of_rules": no_of_rules,
+                "no_of_notifications": no_of_notifications,
+                "no_of_regulations": no_of_regulations,
+                "no_of_circulars": no_of_circulars,
+                "no_of_statutes": no_of_statutes,
+                "no_of_ordinances": no_of_ordinances,
+                "no_of_orders": no_of_orders,
+                "keywords": keywords,
+                "is_repealed": is_repealed,
             },
         )
         row = result.mappings().fetchone()
@@ -264,6 +302,21 @@ class PDFRepository(IPDFRepository):
             document_type_id=d.get("document_type_id"),
             description=d.get("description"),
             summary=d.get("summary"),
+            act_year=d.get("act_year"),
+            long_title=d.get("long_title"),
+            regional_title=d.get("regional_title"),
+            notification_no=d.get("notification_no"),
+            act_code=d.get("act_code"),
+            so_reason=d.get("so_reason"),
+            no_of_rules=d.get("no_of_rules"),
+            no_of_notifications=d.get("no_of_notifications"),
+            no_of_regulations=d.get("no_of_regulations"),
+            no_of_circulars=d.get("no_of_circulars"),
+            no_of_statutes=d.get("no_of_statutes"),
+            no_of_ordinances=d.get("no_of_ordinances"),
+            no_of_orders=d.get("no_of_orders"),
+            keywords=d.get("keywords"),
+            is_repealed=bool(d.get("is_repealed", False)),
             uploaded_by=d["uploaded_by"],
             created_at=d["created_at"],
         )

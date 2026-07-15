@@ -63,6 +63,21 @@ class PDFCreateRequest(BaseModel):
 
     # Act-specific
     short_title: Optional[str] = None
+    act_year: Optional[int] = None
+    long_title: Optional[str] = None
+    regional_title: Optional[str] = None
+    notification_no: Optional[str] = None
+    act_code: Optional[str] = None
+    so_reason: Optional[str] = None
+    no_of_rules: Optional[int] = None
+    no_of_notifications: Optional[int] = None
+    no_of_regulations: Optional[int] = None
+    no_of_circulars: Optional[int] = None
+    no_of_statutes: Optional[int] = None
+    no_of_ordinances: Optional[int] = None
+    no_of_orders: Optional[int] = None
+    keywords: Optional[str] = None
+    is_repealed: bool = False
 
     # Circular-specific
     valid_until: Optional[date] = None
@@ -104,6 +119,23 @@ class PDFUploadResponse(BaseModel):
     rule_making_authority: Optional[str] = None
     version_no: Optional[str] = None
 
+    # Act-specific extended fields
+    act_year: Optional[int] = None
+    long_title: Optional[str] = None
+    regional_title: Optional[str] = None
+    notification_no: Optional[str] = None
+    act_code: Optional[str] = None
+    so_reason: Optional[str] = None
+    no_of_rules: Optional[int] = None
+    no_of_notifications: Optional[int] = None
+    no_of_regulations: Optional[int] = None
+    no_of_circulars: Optional[int] = None
+    no_of_statutes: Optional[int] = None
+    no_of_ordinances: Optional[int] = None
+    no_of_orders: Optional[int] = None
+    keywords: Optional[str] = None
+    is_repealed: bool = False
+
     department_id: Optional[int] = None
     department_name: Optional[str] = None
     document_type_id: Optional[int] = None
@@ -139,6 +171,23 @@ class PDFListItem(BaseModel):
     next_review_date: Optional[date] = None
     rule_making_authority: Optional[str] = None
     version_no: Optional[str] = None
+
+    # Act-specific extended fields
+    act_year: Optional[int] = None
+    long_title: Optional[str] = None
+    regional_title: Optional[str] = None
+    notification_no: Optional[str] = None
+    act_code: Optional[str] = None
+    so_reason: Optional[str] = None
+    no_of_rules: Optional[int] = None
+    no_of_notifications: Optional[int] = None
+    no_of_regulations: Optional[int] = None
+    no_of_circulars: Optional[int] = None
+    no_of_statutes: Optional[int] = None
+    no_of_ordinances: Optional[int] = None
+    no_of_orders: Optional[int] = None
+    keywords: Optional[str] = None
+    is_repealed: bool = False
 
     department_id: Optional[int] = None
     department_name: Optional[str] = None

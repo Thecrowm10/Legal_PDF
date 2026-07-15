@@ -92,6 +92,21 @@ class PDFService:
         tag_ids: Optional[list[int]] = None,
         relationships: Optional[list[RelationshipInput]] = None,
         description: Optional[str] = None,
+        act_year: Optional[int] = None,
+        long_title: Optional[str] = None,
+        regional_title: Optional[str] = None,
+        notification_no: Optional[str] = None,
+        act_code: Optional[str] = None,
+        so_reason: Optional[str] = None,
+        no_of_rules: Optional[int] = None,
+        no_of_notifications: Optional[int] = None,
+        no_of_regulations: Optional[int] = None,
+        no_of_circulars: Optional[int] = None,
+        no_of_statutes: Optional[int] = None,
+        no_of_ordinances: Optional[int] = None,
+        no_of_orders: Optional[int] = None,
+        keywords: Optional[str] = None,
+        is_repealed: bool = False,
     ) -> PDFDocument:
         file_path = os.path.join(settings.UPLOAD_DIR, file_ref)
         if not os.path.exists(file_path):
@@ -134,6 +149,21 @@ class PDFService:
             document_type_id=document_type_id,
             description=description,
             summary=summary,
+            act_year=act_year,
+            long_title=long_title,
+            regional_title=regional_title,
+            notification_no=notification_no,
+            act_code=act_code,
+            so_reason=so_reason,
+            no_of_rules=no_of_rules,
+            no_of_notifications=no_of_notifications,
+            no_of_regulations=no_of_regulations,
+            no_of_circulars=no_of_circulars,
+            no_of_statutes=no_of_statutes,
+            no_of_ordinances=no_of_ordinances,
+            no_of_orders=no_of_orders,
+            keywords=keywords,
+            is_repealed=is_repealed,
         )
 
         # Save tags and relationships immediately after create (while session is clean).

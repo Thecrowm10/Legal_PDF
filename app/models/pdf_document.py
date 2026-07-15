@@ -1,5 +1,5 @@
 from datetime import datetime, date, timezone
-from sqlalchemy import String, DateTime, ForeignKey, Integer, BigInteger, Text, Date
+from sqlalchemy import String, DateTime, ForeignKey, Integer, BigInteger, Text, Date, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -31,6 +31,21 @@ class PDFDocument(Base):
 
     # Act-specific
     short_title: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    act_year: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    long_title: Mapped[str | None] = mapped_column(Text, nullable=True)
+    regional_title: Mapped[str | None] = mapped_column(Text, nullable=True)
+    notification_no: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    act_code: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    so_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    no_of_rules: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    no_of_notifications: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    no_of_regulations: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    no_of_circulars: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    no_of_statutes: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    no_of_ordinances: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    no_of_orders: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    keywords: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_repealed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     # Circular-specific
     valid_until: Mapped[date | None] = mapped_column(Date, nullable=True)
